@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: accentaura-ai-service
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://accentaura-api.onrender.com,http://localhost:3000
+    healthCheckPath: /health
