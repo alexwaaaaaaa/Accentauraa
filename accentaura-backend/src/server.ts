@@ -44,6 +44,19 @@ app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Root endpoint for health checks
+app.get('/', (_req, res) => {
+  res.json({
+    name: 'Accentaura API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/health',
+      api: '/v1'
+    }
+  });
+});
+
 // Health check endpoint (not under /v1 - for load balancers)
 app.get('/health', async (_req, res) => {
   const timestamp = new Date().toISOString();
