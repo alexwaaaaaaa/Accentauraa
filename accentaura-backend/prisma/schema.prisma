@@ -26,7 +26,7 @@ enum LessonType {
 
 model User {
   id               String         @id @default(auto()) @map("_id") @db.ObjectId
-  email            String         @unique
+  email            String
   password         String?        // null for OAuth users
   name             String?
   avatarUrl        String?
@@ -42,14 +42,11 @@ model User {
   progress         Progress[]
   badges           UserBadge[]
   refreshTokens    RefreshToken[]
-  
-  @@index([email])
-  @@index([totalXp])
 }
 
 model Lesson {
   id          String     @id @default(auto()) @map("_id") @db.ObjectId
-  level       Int        @unique
+  level       Int
   title       String
   type        LessonType
   xpReward    Int
@@ -59,8 +56,6 @@ model Lesson {
   updatedAt   DateTime   @updatedAt
   
   progress    Progress[]
-  
-  @@index([level])
 }
 
 model Progress {
@@ -78,21 +73,19 @@ model Progress {
   
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   lesson      Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-  
-  @@unique([userId, lessonId])
-  @@index([userId])
-  @@index([lessonId])
 }
 
 model Badge {
   id          String      @id @default(auto()) @map("_id") @db.ObjectId
-  name        String      @unique
+  name        String
   description String
   iconUrl     String
   requirement String      // e.g., "complete_10_lessons", "reach_level_5"
   createdAt   DateTime    @default(now())
   
   users       UserBadge[]
+  
+  @@map("badges")
 }
 
 model UserBadge {
@@ -103,20 +96,14 @@ model UserBadge {
   
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
-  
-  @@unique([userId, badgeId])
-  @@index([userId])
 }
 
 model RefreshToken {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String
-  token     String   @unique
+  token     String
   expiresAt DateTime
   createdAt DateTime @default(now())
   
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([token])
-  @@index([userId])
 }
