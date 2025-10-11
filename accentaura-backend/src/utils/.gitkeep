@@ -1,0 +1,5 @@
+# Utility functions will be placed here
+# - jwt.util.ts
+# - password.util.ts
+# - response.util.ts
+# - validation.util.ts

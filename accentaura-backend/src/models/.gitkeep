@@ -1,0 +1,3 @@
+# Data models will be placed here
+# - Prisma models (generated from schema.prisma)
+# - Mongoose schemas for MongoDB

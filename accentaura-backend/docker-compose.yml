@@ -1,0 +1,150 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: accentaura-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: accentaura
+      POSTGRES_PASSWORD: accentaura_password
+      POSTGRES_DB: accentaura
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - accentaura-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U accentaura"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB Database
+  mongodb:
+    image: mongo:6
+    container_name: accentaura-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: accentaura
+      MONGO_INITDB_ROOT_PASSWORD: accentaura_password
+      MONGO_INITDB_DATABASE: accentaura
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - accentaura-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: accentaura-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - accentaura-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI AI Microservice
+  ai-microservice:
+    build:
+      context: ./ai-microservice
+      dockerfile: Dockerfile
+    container_name: accentaura-ai-microservice
+    restart: unless-stopped
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      FASTMCP_LOG_LEVEL: ERROR
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./ai-microservice:/app
+      - ai_uploads:/tmp/uploads
+    networks:
+      - accentaura-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      - mongodb
+
+  # Main Node.js API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: accentaura-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DATABASE_URL: postgresql://accentaura:accentaura_password@postgres:5432/accentaura?schema=public
+      MONGODB_URI: mongodb://accentaura:accentaura_password@mongodb:27017/accentaura?authSource=admin
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      FASTAPI_URL: http://ai-microservice:8000
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      SENTRY_DSN: ${SENTRY_DSN}
+      DATADOG_API_KEY: ${DATADOG_API_KEY}
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+    networks:
+      - accentaura-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ai-microservice:
+        condition: service_healthy
+
+networks:
+  accentaura-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+  ai_uploads:
+    driver: local

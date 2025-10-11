@@ -1,0 +1,7 @@
+# Routes will be placed here
+# - auth.routes.ts
+# - lesson.routes.ts
+# - progress.routes.ts
+# - ai.routes.ts
+# - interview.routes.ts
+# - leaderboard.routes.ts

@@ -1,0 +1,115 @@
+# Fastfile for AccentAura iOS Deployment
+
+default_platform(:ios)
+
+platform :ios do
+  
+  desc "Push a new development build to TestFlight"
+  lane :development do
+    setup_ci if ENV['CI']
+    
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "development",
+      export_method: "app-store",
+      output_directory: "./build/ios/ipa",
+      output_name: "AccentAura-Development.ipa"
+    )
+    
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      distribute_external: false,
+      groups: ["Internal Testers"]
+    )
+  end
+  
+  desc "Push a new staging build to TestFlight"
+  lane :staging do
+    setup_ci if ENV['CI']
+    
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "staging",
+      export_method: "app-store",
+      output_directory: "./build/ios/ipa",
+      output_name: "AccentAura-Staging.ipa"
+    )
+    
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      distribute_external: true,
+      groups: ["Beta Testers"]
+    )
+  end
+  
+  desc "Push a new production build to TestFlight"
+  lane :production do
+    setup_ci if ENV['CI']
+    
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "production",
+      export_method: "app-store",
+      output_directory: "./build/ios/ipa",
+      output_name: "AccentAura-Production.ipa"
+    )
+    
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      distribute_external: false,
+      groups: ["Production Testers"]
+    )
+  end
+  
+  desc "Submit production build to App Store"
+  lane :release do
+    setup_ci if ENV['CI']
+    
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "production",
+      export_method: "app-store",
+      output_directory: "./build/ios/ipa",
+      output_name: "AccentAura.ipa"
+    )
+    
+    upload_to_app_store(
+      skip_metadata: false,
+      skip_screenshots: false,
+      submit_for_review: true,
+      automatic_release: false,
+      force: true
+    )
+  end
+  
+  desc "Run tests"
+  lane :test do
+    run_tests(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      devices: ["iPhone 15 Pro"]
+    )
+  end
+  
+  desc "Take screenshots"
+  lane :screenshots do
+    capture_screenshots(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner"
+    )
+  end
+  
+  desc "Sync certificates and provisioning profiles"
+  lane :sync_certificates do
+    match(
+      type: "development",
+      readonly: true
+    )
+    
+    match(
+      type: "appstore",
+      readonly: true
+    )
+  end
+  
+end

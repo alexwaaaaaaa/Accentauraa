@@ -1,0 +1,8 @@
+# Services will be placed here
+# - auth.service.ts
+# - lesson.service.ts
+# - progress.service.ts
+# - ai.service.ts
+# - interview.service.ts
+# - leaderboard.service.ts
+# - cache.service.ts

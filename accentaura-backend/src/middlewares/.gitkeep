@@ -1,0 +1,6 @@
+# Middlewares will be placed here
+# - auth.middleware.ts
+# - validation.middleware.ts
+# - error.middleware.ts
+# - rateLimit.middleware.ts
+# - upload.middleware.ts

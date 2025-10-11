@@ -1,0 +1,4 @@
+# Prisma schema and migrations will be placed here
+# - schema.prisma
+# - migrations/
+# - seed.ts

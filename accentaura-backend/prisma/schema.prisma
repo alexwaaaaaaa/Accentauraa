@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+  FACEBOOK
+}
+
+enum LessonType {
+  VOCABULARY
+  GRAMMAR
+  SPEAKING
+  LISTENING
+  MIXED
+}
+
+model User {
+  id               String         @id @default(uuid())
+  email            String         @unique
+  password         String?        // null for OAuth users
+  name             String?
+  avatarUrl        String?
+  provider         AuthProvider   @default(EMAIL)
+  currentLevel     Int            @default(1)
+  totalXp          Int            @default(0)
+  streak           Int            @default(0)
+  coins            Int            @default(0)
+  lastActivityDate DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  
+  progress         Progress[]
+  badges           UserBadge[]
+  refreshTokens    RefreshToken[]
+  
+  @@index([email])
+  @@index([totalXp])
+}
+
+model Lesson {
+  id          String     @id @default(uuid())
+  level       Int        @unique
+  title       String
+  type        LessonType
+  xpReward    Int
+  content     Json       // JSONB for activities
+  mediaUrls   Json?      // Array of S3/Firebase URLs
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  progress    Progress[]
+  
+  @@index([level])
+}
+
+model Progress {
+  id          String    @id @default(uuid())
+  userId      String
+  lessonId    String
+  completed   Boolean   @default(false)
+  score       Float?
+  xpEarned    Int       @default(0)
+  timeTaken   Int?      // seconds
+  attempts    Int       @default(1)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson      Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
+}
+
+model Badge {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  description String
+  iconUrl     String
+  requirement String      // e.g., "complete_10_lessons", "reach_level_5"
+  createdAt   DateTime    @default(now())
+  
+  users       UserBadge[]
+}
+
+model UserBadge {
+  id        String   @id @default(uuid())
+  userId    String
+  badgeId   String
+  earnedAt  DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, badgeId])
+  @@index([userId])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([token])
+  @@index([userId])
+}

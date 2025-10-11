@@ -1,0 +1,505 @@
+{
+  "info": {
+    "name": "Accentaura Backend API",
+    "description": "Complete API collection for Accentaura language learning platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000/v1",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login with Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', response.token);",
+                  "    pm.collectionVariables.set('refresh_token', response.refreshToken);",
+                  "    pm.collectionVariables.set('user_id', response.user.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Authenticate a user with email and password"
+          },
+          "response": []
+        },
+        {
+          "name": "Login with OAuth (Google)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', response.token);",
+                  "    pm.collectionVariables.set('refresh_token', response.refreshToken);",
+                  "    pm.collectionVariables.set('user_id', response.user.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"google\",\n  \"token\": \"google-oauth-token-here\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/oauth",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "oauth"]
+            },
+            "description": "Authenticate a user with Google OAuth"
+          },
+          "response": []
+        },
+        {
+          "name": "Login with OAuth (Facebook)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', response.token);",
+                  "    pm.collectionVariables.set('refresh_token', response.refreshToken);",
+                  "    pm.collectionVariables.set('user_id', response.user.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider\": \"facebook\",\n  \"token\": \"facebook-oauth-token-here\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/oauth",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "oauth"]
+            },
+            "description": "Authenticate a user with Facebook OAuth"
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('access_token', response.token);",
+                  "    pm.collectionVariables.set('refresh_token', response.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh"]
+            },
+            "description": "Refresh an expired access token"
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Token",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{access_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/validate",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "validate"]
+            },
+            "description": "Validate a JWT token"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Lessons",
+      "item": [
+        {
+          "name": "Get Lessons (Range)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/lessons?from=1&to=10",
+              "host": ["{{base_url}}"],
+              "path": ["lessons"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "1"
+                },
+                {
+                  "key": "to",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Get lessons from level 1 to 10 with lock/unlock status"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Lesson by Level",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/lessons/1",
+              "host": ["{{base_url}}"],
+              "path": ["lessons", "1"]
+            },
+            "description": "Get detailed information about lesson level 1"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Progress",
+      "item": [
+        {
+          "name": "Get User Progress",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/progress/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["progress", "{{user_id}}"]
+            },
+            "description": "Get progress for the authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "Save Progress",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"lessonId\": \"lesson-uuid-1\",\n  \"completed\": true,\n  \"score\": 95,\n  \"timeTaken\": 180,\n  \"xpEarned\": 50\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/progress",
+              "host": ["{{base_url}}"],
+              "path": ["progress"]
+            },
+            "description": "Save or update user progress for a lesson"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AI",
+      "item": [
+        {
+          "name": "Chat with AI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"prompt\": \"How do I introduce myself in English?\",\n  \"conversationId\": \"conv-uuid-123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ai/chat",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "chat"]
+            },
+            "description": "Chat with AI assistant for language practice"
+          },
+          "response": []
+        },
+        {
+          "name": "Analyze Speech",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "audio",
+                  "type": "file",
+                  "src": "/path/to/audio.mp3",
+                  "description": "Audio file to analyze (.wav, .mp3, .m4a)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/ai/analyze-speech",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "analyze-speech"]
+            },
+            "description": "Analyze speech for pronunciation, confidence, and grammar"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Interview",
+      "item": [
+        {
+          "name": "Start Interview",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"interviewType\": \"job\",\n  \"difficulty\": \"intermediate\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/ai/interview/start",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "interview", "start"]
+            },
+            "description": "Start a new interview practice session"
+          },
+          "response": []
+        },
+        {
+          "name": "Submit Interview",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "sessionId",
+                  "value": "interview-session-uuid",
+                  "type": "text"
+                },
+                {
+                  "key": "audio",
+                  "type": "file",
+                  "src": "/path/to/audio.mp3",
+                  "description": "Audio recording of interview responses"
+                },
+                {
+                  "key": "video",
+                  "type": "file",
+                  "src": "/path/to/video.mp4",
+                  "description": "Video recording (optional)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/ai/interview/submit",
+              "host": ["{{base_url}}"],
+              "path": ["ai", "interview", "submit"]
+            },
+            "description": "Submit interview responses for analysis"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Leaderboard",
+      "item": [
+        {
+          "name": "Get Leaderboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/leaderboard?limit=100",
+              "host": ["{{base_url}}"],
+              "path": ["leaderboard"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            },
+            "description": "Get top users on the leaderboard"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Rank",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/leaderboard/rank/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["leaderboard", "rank", "{{user_id}}"]
+            },
+            "description": "Get rank and percentile for a specific user"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health Status",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:3000/health",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "3000",
+              "path": ["health"]
+            },
+            "description": "Check health status of API and all services (no /v1 prefix)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

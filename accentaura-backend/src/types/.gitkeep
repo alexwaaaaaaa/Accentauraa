@@ -1,0 +1,6 @@
+# TypeScript type definitions will be placed here
+# - express.d.ts (Extended Express types)
+# - auth.types.ts
+# - lesson.types.ts
+# - progress.types.ts
+# - ai.types.ts

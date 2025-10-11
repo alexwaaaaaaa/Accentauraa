@@ -1,0 +1,225 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, staging ]
+  pull_request:
+    branches: [ main, develop, staging ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+      
+      - name: Get dependencies
+        run: flutter pub get
+      
+      - name: Analyze code
+        run: flutter analyze
+      
+      - name: Run unit tests
+        run: flutter test --coverage
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+
+  build-android:
+    name: Build Android
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    
+    strategy:
+      matrix:
+        flavor: [development, staging, production]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+      
+      - name: Get dependencies
+        run: flutter pub get
+      
+      - name: Build APK - ${{ matrix.flavor }}
+        run: flutter build apk --flavor ${{ matrix.flavor }} --target lib/main_${{ matrix.flavor }}.dart
+      
+      - name: Build App Bundle - ${{ matrix.flavor }}
+        run: flutter build appbundle --flavor ${{ matrix.flavor }} --target lib/main_${{ matrix.flavor }}.dart
+      
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-${{ matrix.flavor }}
+          path: build/app/outputs/flutter-apk/*.apk
+      
+      - name: Upload App Bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-bundle-${{ matrix.flavor }}
+          path: build/app/outputs/bundle/${{ matrix.flavor }}Release/*.aab
+
+  build-ios:
+    name: Build iOS
+    needs: test
+    runs-on: macos-latest
+    if: github.event_name == 'push'
+    
+    strategy:
+      matrix:
+        flavor: [development, staging, production]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+      
+      - name: Get dependencies
+        run: flutter pub get
+      
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+      
+      - name: Build iOS - ${{ matrix.flavor }}
+        run: flutter build ios --no-codesign --flavor ${{ matrix.flavor }} --target lib/main_${{ matrix.flavor }}.dart
+      
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-${{ matrix.flavor }}
+          path: build/ios/iphoneos/*.app
+
+  deploy-android-internal:
+    name: Deploy Android to Internal Testing
+    needs: build-android
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download App Bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: android-bundle-development
+      
+      - name: Deploy to Play Console Internal Testing
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT }}
+          packageName: com.accentaura.accentaura_mobile_app.dev
+          releaseFiles: '*.aab'
+          track: internal
+          status: completed
+
+  deploy-android-staging:
+    name: Deploy Android to Beta Testing
+    needs: build-android
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download App Bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: android-bundle-staging
+      
+      - name: Deploy to Play Console Beta Testing
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT }}
+          packageName: com.accentaura.accentaura_mobile_app.staging
+          releaseFiles: '*.aab'
+          track: beta
+          status: completed
+
+  deploy-android-production:
+    name: Deploy Android to Production
+    needs: build-android
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download App Bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: android-bundle-production
+      
+      - name: Deploy to Play Console Production
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT }}
+          packageName: com.accentaura.accentaura_mobile_app
+          releaseFiles: '*.aab'
+          track: production
+          status: completed
+
+  deploy-ios-testflight:
+    name: Deploy iOS to TestFlight
+    needs: build-ios
+    runs-on: macos-latest
+    if: (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/staging') && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+      
+      - name: Get dependencies
+        run: flutter pub get
+      
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install
+      
+      - name: Build and upload to TestFlight
+        env:
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+        run: |
+          # This requires proper signing certificates and provisioning profiles
+          # Configure fastlane or use xcodebuild with proper credentials
+          echo "Configure TestFlight deployment with your signing credentials"

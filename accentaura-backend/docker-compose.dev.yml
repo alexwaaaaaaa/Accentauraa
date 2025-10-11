@@ -1,0 +1,139 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: accentaura-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: accentaura
+      POSTGRES_PASSWORD: accentaura_dev_password
+      POSTGRES_DB: accentaura_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    networks:
+      - accentaura-dev-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U accentaura"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB Database
+  mongodb:
+    image: mongo:6
+    container_name: accentaura-mongodb-dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: accentaura
+      MONGO_INITDB_ROOT_PASSWORD: accentaura_dev_password
+      MONGO_INITDB_DATABASE: accentaura_dev
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_dev_data:/data/db
+    networks:
+      - accentaura-dev-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: accentaura-redis-dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - accentaura-dev-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI AI Microservice (Development)
+  ai-microservice:
+    build:
+      context: ./ai-microservice
+      dockerfile: Dockerfile
+    container_name: accentaura-ai-microservice-dev
+    restart: unless-stopped
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      FASTMCP_LOG_LEVEL: DEBUG
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./ai-microservice:/app
+      - ai_dev_uploads:/tmp/uploads
+    networks:
+      - accentaura-dev-network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      - mongodb
+
+  # Main Node.js API (Development)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: development
+    container_name: accentaura-api-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://accentaura:accentaura_dev_password@postgres:5432/accentaura_dev?schema=public
+      MONGODB_URI: mongodb://accentaura:accentaura_dev_password@mongodb:27017/accentaura_dev?authSource=admin
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-key-change-in-production}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev-refresh-secret-key-change-in-production}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      FASTAPI_URL: http://ai-microservice:8000
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      FACEBOOK_APP_ID: ${FACEBOOK_APP_ID}
+    ports:
+      - "3000:3000"
+      - "9229:9229"  # Node.js debugger port
+    volumes:
+      - ./src:/app/src
+      - ./prisma:/app/prisma
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads
+      - /app/node_modules
+    networks:
+      - accentaura-dev-network
+    command: npm run dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ai-microservice:
+        condition: service_started
+
+networks:
+  accentaura-dev-network:
+    driver: bridge
+
+volumes:
+  postgres_dev_data:
+    driver: local
+  mongodb_dev_data:
+    driver: local
+  redis_dev_data:
+    driver: local
+  ai_dev_uploads:
+    driver: local

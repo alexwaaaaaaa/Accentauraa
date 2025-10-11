@@ -1,0 +1,7 @@
+#include "Generated.xcconfig"
+
+// Production environment configuration
+FLUTTER_BUILD_MODE=release
+DART_DEFINES=ENV=production
+PRODUCT_BUNDLE_IDENTIFIER=com.accentaura.accentauraMobileApp
+PRODUCT_NAME=AccentAura

@@ -1,0 +1,7 @@
+#include "Generated.xcconfig"
+
+// Staging environment configuration
+FLUTTER_BUILD_MODE=release
+DART_DEFINES=ENV=staging
+PRODUCT_BUNDLE_IDENTIFIER=com.accentaura.accentauraMobileApp.staging
+PRODUCT_NAME=AccentAura Staging

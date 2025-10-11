@@ -1,0 +1,6 @@
+# Configuration files will be placed here
+# - db.ts (PostgreSQL/Prisma)
+# - mongo.ts (MongoDB)
+# - redis.ts (Redis)
+# - env.ts (Environment validation)
+# - logger.ts (Winston logger)

@@ -1,0 +1,7 @@
+#include "Generated.xcconfig"
+
+// Development environment configuration
+FLUTTER_BUILD_MODE=debug
+DART_DEFINES=ENV=development
+PRODUCT_BUNDLE_IDENTIFIER=com.accentaura.accentauraMobileApp.dev
+PRODUCT_NAME=AccentAura Dev

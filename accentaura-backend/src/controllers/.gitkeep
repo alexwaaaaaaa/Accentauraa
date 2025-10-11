@@ -1,0 +1,7 @@
+# Controllers will be placed here
+# - auth.controller.ts
+# - lesson.controller.ts
+# - progress.controller.ts
+# - ai.controller.ts
+# - interview.controller.ts
+# - leaderboard.controller.ts
