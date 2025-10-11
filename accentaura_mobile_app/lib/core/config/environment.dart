@@ -21,9 +21,9 @@ class EnvironmentConfig {
   /// Development environment configuration (Localhost)
   static const development = EnvironmentConfig(
     environment: Environment.development,
-    apiBaseUrl: 'http://10.0.2.2:3000', // Android emulator localhost
-    // For iOS simulator use: 'http://localhost:3000'
-    // For physical device use: 'http://YOUR_IP:3000' (e.g., 'http://192.168.1.100:3000')
+    apiBaseUrl: 'http://10.0.2.2:3000/v1', // Android emulator localhost
+    // For iOS simulator use: 'http://localhost:3000/v1'
+    // For physical device use: 'http://YOUR_IP:3000/v1' (e.g., 'http://192.168.1.100:3000/v1')
     apiKey: 'dev_api_key_placeholder',
     enableLogging: true,
     enableAnalytics: false,
@@ -33,7 +33,7 @@ class EnvironmentConfig {
   /// Staging environment configuration
   static const staging = EnvironmentConfig(
     environment: Environment.staging,
-    apiBaseUrl: 'https://staging-api.accentaura.com',
+    apiBaseUrl: 'https://accentaura-api.onrender.com/v1',
     apiKey: 'staging_api_key_placeholder',
     enableLogging: true,
     enableAnalytics: true,
@@ -43,7 +43,7 @@ class EnvironmentConfig {
   /// Production environment configuration
   static const production = EnvironmentConfig(
     environment: Environment.production,
-    apiBaseUrl: 'https://api.accentaura.com',
+    apiBaseUrl: 'https://accentaura-api.onrender.com/v1',
     apiKey: 'prod_api_key_placeholder',
     enableLogging: false,
     enableAnalytics: true,
