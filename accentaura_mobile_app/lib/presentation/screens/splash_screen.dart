@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/auth_provider.dart';
 import '../navigation/app_router.dart';
 import '../../core/utils/logger.dart';
 
 /// Splash screen displayed on app launch
-/// 
+///
 /// This screen will:
 /// - Display app logo with loading animation
 /// - Check for cached authentication token
@@ -28,7 +27,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize animations
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1500),
@@ -74,21 +73,33 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
       // For now, skip session restore to avoid backend dependency
       // TODO: Re-enable session restore once backend is running
-      Logger.info('Skipping session restore, navigating to auth screen', tag: 'SplashScreen');
-      
+      Logger.info(
+        'Skipping session restore, navigating to auth screen',
+        tag: 'SplashScreen',
+      );
+
       // Navigate to auth screen
       if (mounted) {
         context.go(AppRoutes.auth);
       }
     } catch (e, stackTrace) {
-      Logger.error('Error during app initialization', error: e, stackTrace: stackTrace, tag: 'SplashScreen');
-      
+      Logger.error(
+        'Error during app initialization',
+        error: e,
+        stackTrace: stackTrace,
+        tag: 'SplashScreen',
+      );
+
       // On any error, navigate to auth screen
       if (mounted) {
         try {
           context.go(AppRoutes.auth);
         } catch (navError) {
-          Logger.error('Navigation error', error: navError, tag: 'SplashScreen');
+          Logger.error(
+            'Navigation error',
+            error: navError,
+            tag: 'SplashScreen',
+          );
         }
       }
     }
@@ -97,7 +108,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       backgroundColor: theme.colorScheme.primary,
       body: Center(
@@ -132,7 +143,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       ),
                     ),
                     const SizedBox(height: 32),
-                    
+
                     // App name
                     Text(
                       'AccentAura',
@@ -143,7 +154,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       ),
                     ),
                     const SizedBox(height: 8),
-                    
+
                     // Tagline
                     Text(
                       'Master Your Accent',
@@ -153,7 +164,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       ),
                     ),
                     const SizedBox(height: 64),
-                    
+
                     // Loading indicator
                     SizedBox(
                       width: 40,
