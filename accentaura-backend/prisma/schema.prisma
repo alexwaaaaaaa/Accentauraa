@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
@@ -25,7 +25,7 @@ enum LessonType {
 }
 
 model User {
-  id               String         @id @default(uuid())
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
   email            String         @unique
   password         String?        // null for OAuth users
   name             String?
@@ -48,7 +48,7 @@ model User {
 }
 
 model Lesson {
-  id          String     @id @default(uuid())
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
   level       Int        @unique
   title       String
   type        LessonType
@@ -64,7 +64,7 @@ model Lesson {
 }
 
 model Progress {
-  id          String    @id @default(uuid())
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
   userId      String
   lessonId    String
   completed   Boolean   @default(false)
@@ -85,7 +85,7 @@ model Progress {
 }
 
 model Badge {
-  id          String      @id @default(uuid())
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
   name        String      @unique
   description String
   iconUrl     String
@@ -96,7 +96,7 @@ model Badge {
 }
 
 model UserBadge {
-  id        String   @id @default(uuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String
   badgeId   String
   earnedAt  DateTime @default(now())
@@ -109,7 +109,7 @@ model UserBadge {
 }
 
 model RefreshToken {
-  id        String   @id @default(uuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String
   token     String   @unique
   expiresAt DateTime
