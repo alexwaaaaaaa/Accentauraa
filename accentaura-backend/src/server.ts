@@ -49,13 +49,13 @@ app.get('/health', async (_req, res) => {
   const timestamp = new Date().toISOString();
   const checks: Record<string, { status: string; message?: string; responseTime?: number }> = {};
   
-  // Check PostgreSQL connection
-  const pgStart = Date.now();
+  // Check MongoDB connection (via Prisma)
+  const dbStart = Date.now();
   try {
-    await prisma.$queryRaw`SELECT 1`;
-    checks.postgresql = {
+    await prisma.user.findFirst();
+    checks.mongodb_prisma = {
       status: 'connected',
-      responseTime: Date.now() - pgStart
+      responseTime: Date.now() - dbStart
     };
   } catch (error) {
     checks.postgresql = {
